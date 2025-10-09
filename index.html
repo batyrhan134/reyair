@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ReyAir — Сайт авиабилетов</title>
+
+  <!-- Подключаем шрифт (локально/сети) -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --accent: #0366d6;
+      --accent-2:#0a58c6;
+      --bg: #f6f8fb;
+      --card: #ffffff;
+      --muted: #6b7280;
+      --glass: rgba(255,255,255,0.7);
+      --shadow: 0 6px 18px rgba(15,23,42,0.06);
+      --radius: 12px;
+      --max-w: 1100px;
+    }
+
+    /* Reset / base */
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: linear-gradient(180deg,var(--bg) 0%, #eef3fb 100%);
+      color:#0f172a;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      line-height:1.35;
+      letter-spacing:0.01em;
+    }
+
+    a{color:inherit;text-decoration:none}
+    img{max-width:100%;display:block}
+
+    /* layout container */
+    .container{
+      width: min(96%, var(--max-w));
+      margin: 28px auto;
+      padding: 20px;
+    }
+
+    /* SVG sprite hidden */
+    svg.sprite{ position: absolute; width:0;height:0; overflow:hidden; display:none; }
+
+    /* Header */
+    .site-header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:20px;
+      animation:fadeInDown .6s ease both;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+    .brand__logo{
+      width:52px;height:52px;border-radius:10px;
+      background: linear-gradient(135deg,#cfe9ff, #eaf5ff);
+      display:flex;align-items:center;justify-content:center;
+      font-weight:800;color:var(--accent-2); font-size:20px;
+      box-shadow: var(--shadow);
+      transition:transform .25s ease, box-shadow .25s ease;
+    }
+    .brand__logo:hover{ transform: translateY(-3px) scale(1.03); box-shadow: 0 10px 30px rgba(10,40,90,0.08); }
+
+    .brand__title{ margin:0; font-size:18px; font-weight:700; }
+    .brand__subtitle{ margin:0; font-size:12px; color:var(--muted) }
+
+    /* Nav */
+    .nav{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      position:relative;
+    }
+
+    .nav__list{
+      display:flex; gap:8px; align-items:center;
+      list-style:none; margin:0; padding:0;
+    }
+    .nav__item{
+      position:relative;
+    }
+    .nav__link{
+      display:inline-flex;
+      padding:8px 12px;
+      border-radius:8px;
+      font-weight:600;
+      color: #0f172a;
+      transition: background .22s ease, color .22s ease, transform .18s ease;
+    }
+    .nav__link:hover{ background: rgba(3,102,214,0.08); color: var(--accent-2); transform: translateY(-2px); }
+
+    /* dropdown */
+    .dropdown{
+      position: absolute;
+      left: 0;
+      top: calc(100% + 8px);
+      min-width:200px;
+      background:var(--card);
+      border-radius:10px;
+      box-shadow: 0 12px 30px rgba(12,18,40,0.12);
+      padding:8px;
+      display:none;
+      z-index:90;
+      border: 1px solid rgba(3,102,214,0.06);
+      transform-origin: top center;
+      animation:floatDown .25s ease both;
+    }
+    .nav__item:hover > .dropdown, .nav__item:focus-within > .dropdown{ display:block; }
+
+    .dropdown a{ display:block; padding:8px 12px; border-radius:8px; color:#0f172a; font-weight:600; }
+    .dropdown a:hover{ background: rgba(3,102,214,0.06); color:var(--accent-2); }
+
+    /* mobile menu button */
+    .menu-toggle{
+      display:none;
+      background:transparent;border:0;padding:6px;border-radius:8px;cursor:pointer;
+    }
+
+    /* Hero / Welcome */
+    .hero{
+      margin-top:18px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.85));
+      border-radius: var(--radius);
+      padding:28px;
+      display:grid;
+      grid-template-columns: 1fr 380px;
+      gap:22px;
+      box-shadow: var(--shadow);
+      overflow:visible;
+      align-items:center;
+      position:relative;
+    }
+
+    .hero__left{
+      padding-right:6px;
+    }
+    .eyebrow{ font-size:13px; color:var(--muted); font-weight:600; margin:0 0 8px 0; }
+    .hero__title{ font-size:28px; margin:0 0 8px 0; font-weight:800; line-height:1.05; }
+    .hero__desc{ color:var(--muted); margin:0 0 16px 0; font-size:15px; max-width:62ch; }
+
+    /* Search card inside hero */
+    .search-card{
+      background: linear-gradient(180deg,#fff,#fbfdff);
+      border-radius:12px;
+      padding:14px;
+      box-shadow: 0 8px 22px rgba(12,18,40,0.06);
+      border:1px solid rgba(6,34,81,0.03);
+      display:flex;
+      gap:12px;
+      align-items:center;
+      transition: transform .25s ease, box-shadow .25s ease;
+    }
+    .search-card:hover{ transform: translateY(-4px); box-shadow: 0 12px 34px rgba(12,18,40,0.08); }
+
+    .field{ display:flex; flex-direction:column; gap:6px; min-width:0; }
+    .field label{ font-size:12px; color:var(--muted); font-weight:600; }
+    .field input, .field select{ padding:10px 12px; border-radius:8px; border:1px solid #e9f1ff; background:#fff; outline:none;
+      transition: box-shadow .18s ease, transform .18s ease, border-color .18s ease;
+      font-size:14px;
+    }
+    .field input:focus, .field select:focus{ box-shadow: 0 6px 18px rgba(3,102,214,0.08); border-color: rgba(3,102,214,0.16); transform: translateY(-2px); }
+
+    .btn{
+      padding:10px 14px; border-radius:8px; border:0; cursor:pointer; background:var(--accent); color:#fff; font-weight:700;
+      transition: transform .18s ease, box-shadow .18s ease, opacity .18s ease;
+    }
+    .btn:hover{ transform: translateY(-3px) scale(1.02); box-shadow: 0 10px 26px rgba(3,102,214,0.12); opacity:0.98; }
+
+    /* decorative plane (animated) */
+    .plane{
+      position:absolute;
+      right: -16px;
+      top: -28px;
+      width:160px;
+      height:120px;
+      pointer-events:none;
+      transform-origin: center;
+      animation:planeFloat 6s ease-in-out infinite;
+      opacity:.95;
+    }
+
+    /* Results area */
+    .results{
+      margin-top:20px;
+      display:flex;
+      gap:18px;
+      align-items:flex-start;
+    }
+    .results__list{
+      flex:1;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .flight{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      padding:14px;
+      border-radius:10px;
+      border:1px solid rgba(3,102,214,0.04);
+      background: linear-gradient(180deg,#fff,#fbfdff);
+      box-shadow: 0 6px 18px rgba(12,18,40,0.04);
+      transition: transform .22s ease, box-shadow .22s ease;
+      align-items:center;
+    }
+    .flight:hover{ transform: translateY(-6px); box-shadow: 0 18px 40px rgba(12,18,40,0.08); }
+
+    .flight__info{ display:flex; gap:12px; align-items:center; }
+    .flight__airline{
+      width:56px;height:56px;border-radius:10px;
+      background: linear-gradient(135deg,#eef7ff,#f3fbff);
+      display:flex;align-items:center;justify-content:center;
+      font-weight:700;color:var(--accent-2); font-size:18px;
+      transition: transform .25s ease;
+    }
+    .flight__airline:hover{ transform: rotate(6deg) scale(1.08); }
+
+    .flight__meta{ font-size:13px; color:var(--muted); margin-top:4px; }
+    .flight__price{ font-weight:800; font-size:18px; color:var(--accent-2); animation:pricePulse 3s ease-in-out infinite; }
+
+    .flight__cta button{ background: transparent; border: 1px solid var(--accent); color: var(--accent); padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:700; transition: all .18s ease; }
+    .flight__cta button:hover{ background:var(--accent); color:#fff; transform: translateY(-3px); box-shadow: 0 12px 28px rgba(3,102,214,0.12); }
+
+    /* Filters column */
+    .filters{
+      width:320px; flex-shrink:0; display:flex; flex-direction:column; gap:12px;
+    }
+    .panel{
+      background:var(--card); padding:12px; border-radius:10px; box-shadow: var(--shadow); border:1px solid rgba(3,102,214,0.03);
+    }
+    .panel h4{ margin:0 0 8px 0; font-size:15px; }
+    .pill{ display:inline-flex; gap:8px; align-items:center; padding:8px 10px; border-radius:999px; border:1px solid rgba(3,102,214,0.06); background:#fff; font-weight:700; }
+
+    /* Reviews section */
+    .reviews{
+      margin-top:26px;
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:14px;
+    }
+    .review{
+      background: linear-gradient(180deg,#fff,#fbfdff);
+      padding:14px; border-radius:10px; box-shadow: var(--shadow); border:1px solid rgba(3,102,214,0.03);
+      transition: transform .18s ease, box-shadow .18s ease;
+    }
+    .review:hover{ transform: translateY(-6px); box-shadow: 0 14px 36px rgba(12,18,40,0.08); }
+    .review__meta{ font-size:13px; color:var(--muted); margin-top:6px; }
+
+    /* Footer with social icons using sprite */
+    .site-footer{ margin-top:32px; display:flex; justify-content:space-between; align-items:center; gap:12px; }
+    .socials{ display:flex; gap:10px; align-items:center; }
+    .icon{
+      width:36px;height:36px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;
+      background: #fff; border:1px solid rgba(6,34,81,0.04); box-shadow: var(--shadow);
+      transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+      padding:6px;
+    }
+    .icon:hover{ transform: translateY(-4px) scale(1.04); box-shadow: 0 12px 30px rgba(12,18,40,0.08); background: linear-gradient(180deg,#eef7ff,#f3fbff) }
+
+    /* Responsive */
+    @media (max-width: 1000px){
+      .hero{ grid-template-columns: 1fr; padding:18px; }
+      .results{ flex-direction:column; }
+      .filters{ width:100%; order:2; }
+      .reviews{ grid-template-columns: repeat(2,1fr); }
+      .menu-toggle{ display:inline-flex; }
+      .nav__list{ display:none; position:absolute; right:20px; top:60px; flex-direction:column; gap:6px; background:var(--card); padding:12px; border-radius:10px; box-shadow:0 12px 30px rgba(12,18,40,0.12); }
+      .nav__list.open{ display:flex; }
+    }
+    @media (max-width: 640px){
+      .reviews{ grid-template-columns: 1fr; }
+      .plane{ display:none; }
+    }
+
+    /* Animations */
+    @keyframes fadeInDown{ from{opacity:0; transform:translateY(-10px)} to{opacity:1; transform:none} }
+    @keyframes floatDown{ from{opacity:0; transform:translateY(-6px) scale(.98)} to{opacity:1; transform:translateY(0) scale(1)} }
+    @keyframes planeFloat{
+      0%{ transform: translateY(0) rotate(-6deg) translateX(0) }
+      50%{ transform: translateY(10px) rotate(6deg) translateX(-6px) }
+      100%{ transform: translateY(0) rotate(-6deg) translateX(0) }
+    }
+    @keyframes pricePulse{
+      0%,100%{ color:var(--accent-2) }
+      50%{ color:#0f172a }
+    }
+
+    /* small helpers for perfect pixel */
+    .muted{ color:var(--muted) }
+    .small{ font-size:13px }
+  </style>
+</head>
+<body>
+  <!-- SVG sprite (icons) -->
+  <svg class="sprite" aria-hidden="true" focusable="false">
+    <symbol id="icon-telegram" viewBox="0 0 24 24">
+      <path d="M21.5 3.5L3.6 10.2c-.9.3-.9 1.3.1 1.5l3.7.9 1.1 3.5c.2.8 1.1 1 1.6.3l2.1-2.9 3.8 2.8c.7.5 1.5.1 1.7-.8l2.8-16.9c.2-1.1-.9-1.9-1.8-1.5z" fill="currentColor"/>
+    </symbol>
+
+    <symbol id="icon-instagram" viewBox="0 0 24 24">
+      <path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm5 6.5A4.5 4.5 0 1 0 16.5 13 4.5 4.5 0 0 0 12 8.5zM18.5 6a1 1 0 1 0 1 1 1 1 0 0 0-1-1z" fill="currentColor"/>
+    </symbol>
+
+    <symbol id="icon-facebook" viewBox="0 0 24 24">
+      <path d="M22 12a10 10 0 1 0-11.5 9.9v-7H8.9v-2.9h1.6V9.2c0-1.6.9-2.6 2.5-2.6.7 0 1.4.1 1.4.1v1.6h-.8c-.8 0-1 0-1 1v1.6h1.7l-.3 2.9h-1.4v7A10 10 0 0 0 22 12z" fill="currentColor"/>
+    </symbol>
+
+    <symbol id="icon-twitter" viewBox="0 0 24 24">
+      <path d="M21 6.5c-.6.3-1.2.5-1.9.6.7-.4 1.2-1 1.5-1.7-.6.4-1.3.7-2 .9A3.2 3.2 0 0 0 12 9.2c0 .3 0 .7.1 1C8.3 10.2 5.1 8.4 3 5.6c-.4.7-.6 1.5-.6 2.3 0 1.6.8 3 2 3.8-.5 0-1-.1-1.4-.4v.1c0 2.2 1.6 4 3.7 4.5-.4.1-.8.1-1.2.1-.3 0-.6 0-.9-.1.6 1.9 2.4 3.3 4.6 3.3A6.6 6.6 0 0 0 21 8.3c0-.1 0-.2 0-.3.4-.3.8-.7 1.1-1.2-.4.2-.9.4-1.4.5z" fill="currentColor"/>
+    </symbol>
+  </svg>
+
+  <div class="container">
+    <header class="site-header" role="banner" aria-label="Главная шапка сайта">
+      <div class="brand" aria-hidden="false">
+        <div class="brand__logo" title="ReyAir">RA</div>
+        <div>
+          <h1 class="brand__title">ReyAir</h1>
+          <div class="brand__subtitle">Дёшево. Быстро. Удобно.</div>
+        </div>
+      </div>
+
+      <nav class="nav" role="navigation" aria-label="Главное меню">
+        <button class="menu-toggle" id="menuToggle" aria-expanded="false" aria-controls="primaryNav">
+          ☰
+        </button>
+
+        <ul class="nav__list" id="primaryNav">
+          <li class="nav__item"><a class="nav__link" href="#">Главная</a></li>
+
+          <li class="nav__item" tabindex="0">
+            <a class="nav__link" href="#" aria-haspopup="true" aria-expanded="false">Маршруты ▾</a>
+            <div class="dropdown" role="menu" aria-hidden="true">
+              <a role="menuitem" href="#">Популярные</a>
+              <a role="menuitem" href="#">Международные</a>
+              <a role="menuitem" href="#">Спецпредложения</a>
+            </div>
+          </li>
+
+          <li class="nav__item"><a class="nav__link" href="#reviews">Отзывы</a></li>
+          <li class="nav__item"><a class="nav__link" href="#">Контакты</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <!-- HERO / Welcome -->
+    <section class="hero" aria-labelledby="heroTitle">
+      <div class="hero__left">
+        <p class="eyebrow">Добро пожаловать в ReyAir</p>
+        <h2 id="heroTitle" class="hero__title">Найдите лучшие авиабилеты — быстро и удобно</h2>
+        <p class="hero__desc">Сравнивайте цены, фильтруйте по пересадкам и времени в пути, бронируйте одним кликом. Интерфейс адаптирован под любые устройства.</p>
+
+        <!-- search card -->
+        <div class="search-card" role="search" aria-label="Поиск билетов">
+          <div style="display:flex;gap:10px;flex:1;align-items:center">
+            <div class="field" style="flex:1">
+              <label for="from">Откуда</label>
+              <input id="from" placeholder="Казань, KZN" value="Алматы" />
+            </div>
+
+            <div class="field" style="flex:1">
+              <label for="to">Куда</label>
+              <input id="to" placeholder="Москва, SVO" value="Москва" />
+            </div>
+
+            <div class="field" style="min-width:120px">
+              <label for="depart">Туда</label>
+              <input id="depart" type="date" />
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <button class="btn" id="searchBtn">Найти</button>
+            <div style="text-align:center" class="small muted">~ 0.2s</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- right column: summary card + plane decorative -->
+      <aside>
+        <div class="panel" style="margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div class="small muted">Лучшая цена</div>
+              <div style="font-weight:800;font-size:20px">₸ 28 000</div>
+            </div>
+            <div class="pill">Отправление сегодня</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div style="display:flex;gap:12px;align-items:center">
+            <div style="flex:1">
+              <div class="small muted">Скорость поиска</div>
+              <div style="font-weight:700">0.18s</div>
+            </div>
+            <div style="text-align:right">
+              <div class="small muted">Качество</div>
+              <div style="font-weight:700">4.8 / 5</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- decorative plane SVG -->
+      <svg class="plane" viewBox="0 0 200 140" aria-hidden="true">
+        <g transform="translate(10,10) scale(1)">
+          <path d="M10 70 L180 10 L150 70 L180 130 Z" fill="#eaf6ff" opacity="0.9"/>
+          <path d="M25 70 L140 30 L130 70 L140 110 Z" fill="#d8efff" opacity="0.85"/>
+          <circle cx="30" cy="70" r="6" fill="#0366d6"/>
+        </g>
+      </svg>
+    </section>
+
+    <!-- Results + filters -->
+    <div class="results" style="margin-top:18px">
+      <div class="results__list" id="flightsList">
+        <!-- flights (examples) -->
+        <article class="flight" role="article" aria-label="Рейс 1">
+          <div class="flight__info">
+            <div class="flight__airline">A</div>
+            <div>
+              <div style="font-weight:800">Алматы → Москва</div>
+              <div class="flight__meta">08:30 — 13:10 · 4ч 20м · без пересадок</div>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div class="flight__price">₸ 42 000</div>
+            <div style="margin-top:8px" class="flight__cta"><button>Забронировать</button></div>
+          </div>
+        </article>
+
+        <article class="flight" role="article" aria-label="Рейс 2">
+          <div class="flight__info">
+            <div class="flight__airline">S</div>
+            <div>
+              <div style="font-weight:800">Алматы → Москва</div>
+              <div class="flight__meta">06:20 — 12:00 · 5ч 40м · 1 пересадка</div>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div class="flight__price">₸ 32 000</div>
+            <div style="margin-top:8px" class="flight__cta"><button>Забронировать</button></div>
+          </div>
+        </article>
+
+        <article class="flight" role="article" aria-label="Рейс 3">
+          <div class="flight__info">
+            <div class="flight__airline">N</div>
+            <div>
+              <div style="font-weight:800">Алматы → Москва</div>
+              <div class="flight__meta">23:10 — 04:50 · 5ч 40м · 1 пересадка</div>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div class="flight__price">₸ 28 000</div>
+            <div style="margin-top:8px" class="flight__cta"><button>Забронировать</button></div>
+          </div>
+        </article>
+      </div>
+
+      <aside class="filters" aria-label="Фильтры поиска">
+        <div class="panel">
+          <h4>Фильтры</h4>
+          <div style="margin-top:8px">
+            <label class="small muted" for="priceMax">Макс. цена</label>
+            <input id="priceMax" type="number" placeholder="50000" style="width:100%;padding:8px;border-radius:8px;border:1px solid #eef6ff;margin-top:6px" />
+          </div>
+
+          <div style="margin-top:10px">
+            <label class="small muted" for="stops">Пересадки</label>
+            <select id="stops" style="width:100%;padding:8px;border-radius:8px;border:1px solid #eef6ff;margin-top:6px">
+              <option>Любые</option>
+              <option>Без пересадок</option>
+              <option>1 пересадка</option>
+            </select>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-top:12px">
+            <button class="btn" style="flex:1">Применить</button>
+            <button class="btn" style="flex:1;background:#eef6ff;color:var(--accent);border:1px solid rgba(3,102,214,0.08)">Сброс</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h4>Информация</h4>
+          <p class="small muted" style="margin:0">Данные имитированы локально. В реальной версии — подключение к API авиакомпаний/агрегаторов.</p>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Reviews (страница Отзывы) -->
+    <section id="reviews" aria-labelledby="reviewsTitle" style="margin-top:30px">
+      <h3 id="reviewsTitle" style="margin:0 0 12px 0;font-size:20px;font-weight:800">Отзывы</h3>
+
+      <div class="reviews" role="list">
+        <div class="review" role="listitem">
+          <div style="display:flex;gap:10px;align-items:center">
+            <div style="width:44px;height:44px;border-radius:10px;background:#eef7ff;display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--accent-2)">AK</div>
+            <div>
+              <div style="font-weight:700">Андрей, Алматы</div>
+              <div class="small muted">3 дня назад</div>
+            </div>
+          </div>
+          <p style="margin:10px 0 0 0">Купил билет в последний момент — всё прошло быстро и удобно. Рекомендую сервис.</p>
+          <div class="review__meta">Оценка: <strong>5/5</strong></div>
+        </div>
+
+        <div class="review" role="listitem">
+          <div style="display:flex;gap:10px;align-items:center">
+            <div style="width:44px;height:44px;border-radius:10px;background:#fff4e6;display:flex;align-items:center;justify-content:center;font-weight:800;color:#d97706">MS</div>
+            <div>
+              <div style="font-weight:700">Михаил, Нур-Султан</div>
+              <div class="small muted">1 неделя назад</div>
+            </div>
+          </div>
+          <p style="margin:10px 0 0 0">Нормальные цены и понятный поиск. Хотелось бы больше фильтров по багажу.</p>
+          <div class="review__meta">Оценка: <strong>4/5</strong></div>
+        </div>
+
+        <div class="review" role="listitem">
+          <div style="display:flex;gap:10px;align-items:center">
+            <div style="width:44px;height:44px;border-radius:10px;background:#f0fdf4;display:flex;align-items:center;justify-content:center;font-weight:800;color:#059669">ZR</div>
+            <div>
+              <div style="font-weight:700">Зарина, Алматы</div>
+              <div class="small muted">2 недели назад</div>
+            </div>
+          </div>
+          <p style="margin:10px 0 0 0">Удобный интерфейс, быстро нашла лучшие варианты.</p>
+          <div class="review__meta">Оценка: <strong>5/5</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="site-footer" style="margin-top:26px;padding-top:18px;border-top:1px solid rgba(3,102,214,0.04)">
+      <div class="muted small">© ReyAir — все права защищены</div>
+
+      <div style="display:flex;gap:12px;align-items:center">
+        <div class="socials" aria-label="Социальные сети">
+          <a class="icon" href="#" title="Telegram" aria-label="Telegram">
+            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><use xlink:href="#icon-telegram" /></svg>
+          </a>
+
+          <a class="icon" href="#" title="Instagram" aria-label="Instagram">
+            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><use xlink:href="#icon-instagram" /></svg>
+          </a>
+
+          <a class="icon" href="#" title="Facebook" aria-label="Facebook">
+            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><use xlink:href="#icon-facebook" /></svg>
+          </a>
+
+          <a class="icon" href="#" title="Twitter" aria-label="Twitter">
+            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><use xlink:href="#icon-twitter" /></svg>
+          </a>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // Простая логика для мобильного меню
+    (function(){
+      const toggle = document.getElementById('menuToggle');
+      const nav = document.getElementById('primaryNav');
+
+      toggle.addEventListener('click', () => {
+        const open = nav.classList.toggle('open');
+        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+
+      // Делаем keyboard-accessible dropdown: переключение aria-expanded при фокусе
+      document.querySelectorAll('.nav__item[tabindex="0"]').forEach(item => {
+        const link = item.querySelector('.nav__link');
+        const dropdown = item.querySelector('.dropdown');
+        item.addEventListener('keydown', (e) => {
+          if(e.key === 'Escape'){ dropdown.style.display='none'; link.setAttribute('aria-expanded','false'); item.blur(); }
+          if(e.key === 'Enter' || e.key === ' '){ // toggle
+            e.preventDefault();
+            const shown = dropdown.style.display === 'block';
+            dropdown.style.display = shown ? 'none' : 'block';
+            link.setAttribute('aria-expanded', String(!shown));
+          }
+        });
+      });
+
+      // Небольшая демонстрационная анимация — подсветка найденных рейсов
+      const searchBtn = document.getElementById('searchBtn');
+      searchBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        // добавим быстрый визуальный "поиск"
+        const flights = document.querySelectorAll('.flight');
+        flights.forEach((f, i) => {
+          f.style.opacity = '0';
+          f.style.transform = 'translateY(12px)';
+          setTimeout(()=> {
+            f.style.transition = 'all .35s cubic-bezier(.2,.9,.3,1)';
+            f.style.opacity = '1';
+            f.style.transform = 'translateY(0)';
+          }, 80 + i*120);
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
